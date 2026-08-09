@@ -1,0 +1,40 @@
+import type { Video } from "@/types";
+
+export const videos: Video[] = [
+  {
+    id: "v1",
+    slug: "shiva-within-visualizer",
+    title: "Shiva Within — Official Visualizer",
+    description: "Devotional · 2026",
+    provider: "youtube",
+    videoId: "5qap5aO4i9A",
+    albumId: "shiva-within",
+    order: 1,
+    isFeatured: true,
+    status: "published",
+  },
+  {
+    id: "v2",
+    slug: "neon-mantra-live-session",
+    title: "Neon Mantra — Live Session",
+    description: "Progressive House · 2025",
+    provider: "youtube",
+    videoId: "jfKfPfyJRdk",
+    albumId: "neon-mantra",
+    order: 2,
+    isFeatured: true,
+    status: "published",
+  },
+  {
+    id: "v3",
+    slug: "rise-again-motion-film",
+    title: "Rise Again — Motion Film",
+    description: "Motivational · 2025",
+    provider: "youtube",
+    videoId: "lTRiuFIWV54",
+    albumId: "rise-again",
+    order: 3,
+    isFeatured: true,
+    status: "published",
+  },
+];
