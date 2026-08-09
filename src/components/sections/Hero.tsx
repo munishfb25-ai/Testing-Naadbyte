@@ -36,7 +36,10 @@ export function Hero() {
   }, [mouseX, mouseY]);
 
   return (
-    <section id="home" className="relative flex min-h-svh w-full items-center overflow-hidden bg-background">
+    <section
+      id="home"
+      className="relative flex min-h-svh w-full items-center overflow-hidden bg-background"
+    >
       {/* Background Hero Artwork with Parallax & Precision Crop */}
       <motion.div
         className="absolute inset-[-5%]"
@@ -68,7 +71,10 @@ export function Hero() {
         className="absolute top-1/3 left-10 -translate-y-1/2 size-[500px] rounded-full bg-[radial-gradient(circle,rgba(225,157,59,0.14)_0%,transparent_70%)] blur-3xl pointer-events-none"
       />
       {/* Edge fade to dark background at bottom */}
-      <div aria-hidden className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none"
+      />
 
       {/* Floating Gold Particles */}
       <Particles count={32} />
@@ -140,7 +146,10 @@ export function Hero() {
               size="lg"
               className="group shadow-[0_0_24px_rgba(225,157,59,0.35)] hover:shadow-[0_0_36px_rgba(225,157,59,0.55)] transition-all duration-300"
             >
-              <Play className="size-4 fill-primary-foreground transition-transform duration-300 group-hover:scale-110" aria-hidden />
+              <Play
+                className="size-4 fill-primary-foreground transition-transform duration-300 group-hover:scale-110"
+                aria-hidden
+              />
               {heroContent.primaryCta.label}
             </ActionLink>
 
@@ -175,7 +184,9 @@ export function Hero() {
             <div className="flex items-center gap-2.5">
               <Disc3 className="size-4 text-gold animate-[spin_8s_linear_infinite]" aria-hidden />
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-foreground">12+ Genres</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  12+ Genres
+                </p>
                 <p className="text-[0.7rem] text-muted-foreground">Devotional to EDM</p>
               </div>
             </div>
@@ -185,7 +196,9 @@ export function Hero() {
             <div className="flex items-center gap-2.5">
               <Mic2 className="size-4 text-gold" aria-hidden />
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-foreground">3 Languages</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  3 Languages
+                </p>
                 <p className="text-[0.7rem] text-muted-foreground">Hindi · English · Punjabi</p>
               </div>
             </div>
@@ -195,7 +208,9 @@ export function Hero() {
             <div className="flex items-center gap-2.5">
               <Radio className="size-4 text-gold" aria-hidden />
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-foreground">Bespoke Songs</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  Bespoke Songs
+                </p>
                 <p className="text-[0.7rem] text-muted-foreground">Custom Commissioned</p>
               </div>
             </div>
@@ -226,4 +241,3 @@ export function Hero() {
     </section>
   );
 }
-

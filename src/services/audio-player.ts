@@ -46,6 +46,7 @@ function audio(): HTMLAudioElement | null {
   );
   element.addEventListener("timeupdate", () => setState({ currentTime: element!.currentTime }));
   element.addEventListener("play", () => setState({ status: "playing", error: null }));
+  element.addEventListener("playing", () => setState({ status: "playing", error: null }));
   element.addEventListener("pause", () => {
     if (state.status !== "idle") setState({ status: "paused" });
   });
@@ -63,7 +64,14 @@ function load(index: number, autoPlay: boolean) {
   const el = audio();
   if (!track || !el) return;
 
-  setState({ index, currentTrack: track, currentTime: 0, duration: 0, error: null });
+  setState({
+    index,
+    currentTrack: track,
+    currentTime: 0,
+    duration: 0,
+    error: null,
+    status: "loading",
+  });
   if (el.src !== track.src) el.src = track.src;
   if (autoPlay)
     void el.play().catch(() => setState({ status: "error", error: "Playback blocked." }));
@@ -91,11 +99,18 @@ export const controls: AudioPlayerControls = {
 
   pause() {
     audio()?.pause();
+    setState({ status: "paused" });
   },
 
   toggle(track) {
     const isCurrent = track ? state.currentTrack?.id === track.id : state.index >= 0;
-    if (isCurrent && state.status === "playing") {
+
+    // Check actual DOM state if element exists, otherwise fall back to our status
+    const isActuallyPlaying = element
+      ? !element.paused
+      : state.status === "playing" || state.status === "loading";
+
+    if (isCurrent && isActuallyPlaying) {
       controls.pause();
       return;
     }
