@@ -204,8 +204,8 @@ export function mapYouTubeApiItem(item: YouTubeApiPlaylistItem, index: number): 
     isFeatured: index === 0,
     featuredOrder: index + 1,
     order: index + 1,
-    year,
-    genreStr,
+    ...(year ? { year } : {}),
+    ...(genreStr ? { genreStr } : {}),
     category,
   };
 }
@@ -218,7 +218,8 @@ export type YouTubeRssEntry = {
   title: string;
   description: string;
   publishedAt: string;
-  thumbnailUrl?: string;
+  thumbnailUrl?: string | undefined;
+  isShortUrl: boolean;
 };
 
 export function mapYouTubeRssEntry(entry: YouTubeRssEntry, index: number): Video {
@@ -233,7 +234,7 @@ export function mapYouTubeRssEntry(entry: YouTubeRssEntry, index: number): Video
   const genreStr = inferVideoGenre(title, description);
   const slug = slugify(title) || `video-${videoId}`;
 
-  return {
+  const result: Video = {
     id: `yt-${videoId}`,
     slug,
     title,
@@ -246,8 +247,9 @@ export function mapYouTubeRssEntry(entry: YouTubeRssEntry, index: number): Video
     isFeatured: index === 0,
     featuredOrder: index + 1,
     order: index + 1,
-    year,
-    genreStr,
     category,
   };
+  if (year) result.year = year;
+  if (genreStr) result.genreStr = genreStr;
+  return result;
 }

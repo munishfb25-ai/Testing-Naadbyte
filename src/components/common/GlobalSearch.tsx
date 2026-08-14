@@ -89,7 +89,7 @@ export function GlobalSearch() {
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (activeIndex >= 0 && activeIndex < flatList.length) {
-        handleSelect(flatList[activeIndex]);
+        handleSelect(flatList[activeIndex] as SearchItem);
       }
     } else if (e.key === "Escape") {
       e.preventDefault();

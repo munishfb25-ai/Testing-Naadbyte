@@ -38,7 +38,9 @@ function ReleaseCard({ song, index, allSongs }: { song: Song; index: number; all
   const coverSrc = song.cover?.src || brandAssets.logo;
   const artistName = song.artistIds.map((id) => select.artistById(id)?.name || id).join(", ");
   const genreName =
-    song.genreIds.length > 0 ? select.genreById(song.genreIds[0])?.name || song.genreIds[0] : "";
+    song.genreIds.length > 0
+      ? select.genreById(song.genreIds[0] as string)?.name || song.genreIds[0]
+      : "";
 
   return (
     <motion.div

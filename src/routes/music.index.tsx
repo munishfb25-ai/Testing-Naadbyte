@@ -1,224 +1,157 @@
-import type { PlatformKey } from "@/types";
 import { useState, useMemo, useEffect } from "react";
-import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { PageLayout, PageSection } from "@/components/layout/PageLayout";
-import { PlatformIcon } from "@/components/common/PlatformIcon";
-import { pageMeta, withBrand } from "@/lib/seo";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { Play, Pause, Search, ChevronDown, Music2 } from "lucide-react";
-import { albumArt, genreArt } from "@/data/assets";
+import { Play, Pause, ChevronDown, Music2, Info } from "lucide-react";
+import { brandAssets } from "@/data/assets";
+import { songPath } from "@/data/routes";
+import type { AudioTrack } from "@/types";
 
 export const Route = createFileRoute("/music/")({
-  head: () => ({
-    meta: pageMeta({
-      title: withBrand("Music"),
-      description: "Premium music browsing experience.",
-    }),
-  }),
-  component: MusicPage,
+  component: MusicIndexComponent,
+  meta: () => [
+    {
+      title: "Music Library | NaadByte",
+      description: "Browse and listen to the complete NaadByte music library",
+    },
+  ],
 });
 
+// A robust list of 10 tracks to demonstrate the Netflix-style rail interface
 const dummySongs = [
   {
     id: "s1",
-    title: "Paise Ka Tantra",
+    title: "Ethereal Whispers",
     artist: "NaadByte",
-    genre: "Electronic",
-    language: "Hindi",
-    mood: "Motivational",
-    description:
-      "A hard-hitting fusion of modern electronic beats and razor-sharp lyricism, exploring the realities of ambition and the modern grind.",
-    durationSeconds: 185,
-    durationText: "3:05",
-    cover: { src: albumArt.neon, alt: "Paise Ka Tantra Cover" },
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    isFeatured: true,
-    streamingLinks: [
-      { platform: "spotify", href: "#" },
-      { platform: "appleMusic", href: "#" },
-      { platform: "youtube", href: "#" },
-    ],
+    genreIds: ["ambient", "chill"],
+    durationSeconds: 215,
+    cover: { src: brandAssets.logo, alt: "Ethereal Whispers Cover" },
+    slug: "ethereal-whispers",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    streamingLinks: [],
   },
   {
     id: "s2",
-    title: "Shiva Within",
+    title: "Midnight Drive",
     artist: "NaadByte",
-    genre: "Devotional",
-    language: "Hindi",
-    mood: "Spiritual",
-    description:
-      "An ethereal journey merging ancient mantras with cinematic soundscapes, designed to awaken the inner spirit.",
-    durationSeconds: 240,
-    durationText: "4:00",
-    cover: { src: albumArt.shiva, alt: "Shiva Within Cover" },
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    isFeatured: true,
-    streamingLinks: [
-      { platform: "spotify", href: "#" },
-      { platform: "appleMusic", href: "#" },
-    ],
+    genreIds: ["synthwave", "electronic"],
+    durationSeconds: 184,
+    cover: { src: brandAssets.logo, alt: "Midnight Drive Cover" },
+    slug: "midnight-drive",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    streamingLinks: [],
   },
   {
     id: "s3",
-    title: "Young G.O.A.T.",
+    title: "Ocean Breeze",
     artist: "NaadByte",
-    genre: "Hip-Hop",
-    language: "English",
-    mood: "Motivational",
-    description:
-      "High energy, unapologetic bars and heavy basslines. A modern anthem for the fearless.",
-    durationSeconds: 155,
-    durationText: "2:35",
-    cover: { src: albumArt.rise, alt: "Young GOAT Cover" },
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-    isFeatured: true,
-    streamingLinks: [
-      { platform: "spotify", href: "#" },
-      { platform: "youtube", href: "#" },
-    ],
+    genreIds: ["acoustic", "chill"],
+    durationSeconds: 240,
+    cover: { src: brandAssets.logo, alt: "Ocean Breeze Cover" },
+    slug: "ocean-breeze",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    streamingLinks: [],
   },
   {
     id: "s4",
-    title: "Finding Her",
+    title: "Neon City",
     artist: "NaadByte",
-    genre: "Cinematic",
-    language: "Instrumental",
-    mood: "Love",
-    description:
-      "A sweeping orchestration that tells a story of lost love and nostalgic memories across time and space.",
-    durationSeconds: 210,
-    durationText: "3:30",
-    cover: { src: albumArt.echoes, alt: "Finding Her Cover" },
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-    isFeatured: true,
-    streamingLinks: [
-      { platform: "appleMusic", href: "#" },
-      { platform: "amazonMusic", href: "#" },
-    ],
+    genreIds: ["synthwave", "upbeat"],
+    durationSeconds: 195,
+    cover: { src: brandAssets.logo, alt: "Neon City Cover" },
+    slug: "neon-city",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    streamingLinks: [],
   },
   {
     id: "s5",
-    title: "Sanam Teri Kasam",
+    title: "Forest Rain",
     artist: "NaadByte",
-    genre: "Romantic",
-    language: "Hindi",
-    mood: "Love",
-    description: "A reimagined emotional classic with rich acoustic guitars and intimate vocals.",
-    durationSeconds: 260,
-    durationText: "4:20",
-    cover: { src: genreArt.hindi, alt: "Sanam Teri Kasam Cover" },
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
-    isFeatured: true,
-    streamingLinks: [
-      { platform: "spotify", href: "#" },
-      { platform: "appleMusic", href: "#" },
-    ],
+    genreIds: ["ambient", "nature"],
+    durationSeconds: 310,
+    cover: { src: brandAssets.logo, alt: "Forest Rain Cover" },
+    slug: "forest-rain",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+    streamingLinks: [],
   },
   {
     id: "s6",
-    title: "Raanjhan",
+    title: "Cybernetic Pulse",
     artist: "NaadByte",
-    genre: "Punjabi",
-    language: "Punjabi",
-    mood: "Chill",
-    description: "Uplifting traditional dhol loops meeting contemporary synthwave elements.",
-    durationSeconds: 195,
-    durationText: "3:15",
-    cover: { src: genreArt.punjabi, alt: "Raanjhan Cover" },
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
-    isFeatured: false,
+    genreIds: ["electronic", "industrial"],
+    durationSeconds: 205,
+    cover: { src: brandAssets.logo, alt: "Cybernetic Pulse Cover" },
+    slug: "cybernetic-pulse",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
     streamingLinks: [],
   },
   {
     id: "s7",
-    title: "Aashiqui 2 (Cover)",
+    title: "Autumn Leaves",
     artist: "NaadByte",
-    genre: "Romantic",
-    language: "Hindi",
-    mood: "Love",
-    description: "A tribute to one of the greatest romantic eras in Indian music history.",
-    durationSeconds: 205,
-    durationText: "3:25",
-    cover: { src: genreArt.devotional, alt: "Aashiqui 2 Cover" },
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
-    isFeatured: false,
+    genreIds: ["acoustic", "melancholy"],
+    durationSeconds: 160,
+    cover: { src: brandAssets.logo, alt: "Autumn Leaves Cover" },
+    slug: "autumn-leaves",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
     streamingLinks: [],
   },
   {
     id: "s8",
-    title: "Do Patti",
+    title: "Starlight Resonance",
     artist: "NaadByte",
-    genre: "Pop",
-    language: "English",
-    mood: "Chill",
-    description: "Catchy hooks and a rhythmic drive that keeps the dancefloor moving all night.",
-    durationSeconds: 175,
-    durationText: "2:55",
-    cover: { src: genreArt.english, alt: "Do Patti Cover" },
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
-    isFeatured: false,
+    genreIds: ["ambient", "space"],
+    durationSeconds: 280,
+    cover: { src: brandAssets.logo, alt: "Starlight Resonance Cover" },
+    slug: "starlight-resonance",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
     streamingLinks: [],
   },
   {
     id: "s9",
-    title: "Midnight Drive",
+    title: "Desert Mirage",
     artist: "NaadByte",
-    genre: "Electronic",
-    language: "Instrumental",
-    mood: "Chill",
-    description: "Retro-futuristic analog synthesizers and a relentless driving bassline.",
+    genreIds: ["world", "chill"],
     durationSeconds: 230,
-    durationText: "3:50",
-    cover: { src: genreArt.edm, alt: "Midnight Drive Cover" },
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
-    isFeatured: false,
+    cover: { src: brandAssets.logo, alt: "Desert Mirage Cover" },
+    slug: "desert-mirage",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
     streamingLinks: [],
   },
   {
     id: "s10",
-    title: "Ascension",
+    title: "Quantum Leap",
     artist: "NaadByte",
-    genre: "Ambient",
-    language: "Instrumental",
-    mood: "Spiritual",
-    description: "Floating textures and binaural beats for deep meditation and focus.",
-    durationSeconds: 310,
-    durationText: "5:10",
-    cover: { src: genreArt.meditation, alt: "Ascension Cover" },
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
-    isFeatured: false,
+    genreIds: ["electronic", "upbeat"],
+    durationSeconds: 175,
+    cover: { src: brandAssets.logo, alt: "Quantum Leap Cover" },
+    slug: "quantum-leap",
+    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
     streamingLinks: [],
   },
 ];
 
-const filterCategories = [
-  "All",
-  "Devotional",
-  "Love",
-  "Motivational",
-  "Cinematic",
-  "Hindi",
-  "Punjabi",
-  "English",
-  "Hip-Hop",
-  "Chill",
-  "Electronic",
-  "Spiritual",
-  "Instrumental",
-];
+const filterCategories = ["All", "Ambient", "Synthwave", "Acoustic", "Electronic"];
+const sortOptions = ["Newest", "Oldest", "A-Z", "Z-A"];
 
-const sortOptions = ["Latest", "Oldest", "A–Z", "Z–A", "Most Played", "Recently Added"];
+function toTrack(song: (typeof dummySongs)[0]): AudioTrack {
+  return {
+    id: song.id,
+    title: song.title,
+    artist: song.artist,
+    src: song.audioSrc,
+    cover: song.cover,
+    durationSeconds: song.durationSeconds,
+  };
+}
 
-function MusicPage() {
-  const featured = dummySongs.filter((s) => s.isFeatured);
-  const [activeHeroSong, setActiveHeroSong] = useState(featured[0] || dummySongs[0]);
-
-  // Filtering State
+function MusicIndexComponent() {
   const [activeFilter, setActiveFilter] = useState("All");
+  const [sortBy, setSortBy] = useState("Newest");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("Latest");
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [activeHeroSong, setActiveHeroSong] = useState<(typeof dummySongs)[0] | null>(null);
 
   const { currentTrack, status, controls } = useAudioPlayer();
   const location = useLocation();
@@ -226,7 +159,7 @@ function MusicPage() {
 
   // Handle Hash Navigation for Play/Filter
   useEffect(() => {
-    const hash = location.hash.replace("#", "");
+    const hash = location.hash;
     if (!hash) return;
 
     if (hash.startsWith("play-")) {
@@ -236,76 +169,97 @@ function MusicPage() {
         setActiveHeroSong(song);
         controls.playQueue([toTrack(song)], 0);
       }
-      // Clear hash gracefully without reloading
       navigate({ to: "/music", replace: true });
     } else if (hash.startsWith("filter-")) {
       const filter = hash.replace("filter-", "");
       setActiveFilter(filter);
       navigate({ to: "/music", replace: true });
     }
-  }, [location.hash, controls, navigate]);
+  }, [location.hash, navigate, controls]);
 
-  // Filter & Sort Logic
+  // Set initial hero song on mount
+  useEffect(() => {
+    if (dummySongs.length > 0) {
+      setActiveHeroSong(dummySongs[0]);
+    }
+  }, []);
+
   const processedSongs = useMemo(() => {
-    const result = dummySongs.filter((song) => {
-      // Mood/Genre Chip Filter
-      const matchesFilter =
-        activeFilter === "All" ||
-        song.genre === activeFilter ||
-        song.mood === activeFilter ||
-        song.language === activeFilter;
+    let result = [...dummySongs];
 
-      // Text Search Filter
-      const query = searchQuery.toLowerCase();
-      const matchesSearch =
-        !query ||
-        song.title.toLowerCase().includes(query) ||
-        song.artist.toLowerCase().includes(query) ||
-        song.genre.toLowerCase().includes(query) ||
-        song.language.toLowerCase().includes(query) ||
-        song.mood.toLowerCase().includes(query);
+    if (activeFilter !== "All") {
+      result = result.filter((song) =>
+        song.genreIds.some((g) => g.toLowerCase() === activeFilter.toLowerCase()),
+      );
+    }
 
-      return matchesFilter && matchesSearch;
-    });
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (song) => song.title.toLowerCase().includes(q) || song.artist.toLowerCase().includes(q),
+      );
+    }
 
-    // Sorting
     result.sort((a, b) => {
-      if (sortBy === "A–Z") return a.title.localeCompare(b.title);
-      if (sortBy === "Z–A") return b.title.localeCompare(a.title);
-      if (sortBy === "Latest" || sortBy === "Recently Added")
-        return parseInt(b.id.replace("s", "")) - parseInt(a.id.replace("s", ""));
-      if (sortBy === "Oldest")
-        return parseInt(a.id.replace("s", "")) - parseInt(b.id.replace("s", ""));
-      if (sortBy === "Most Played")
-        return parseInt(a.durationSeconds.toString()) - parseInt(b.durationSeconds.toString()); // Dummy sort logic
-      return 0;
+      switch (sortBy) {
+        case "A-Z":
+          return a.title.localeCompare(b.title);
+        case "Z-A":
+          return b.title.localeCompare(a.title);
+        case "Newest":
+          return b.id.localeCompare(a.id); // Mock sorting
+        case "Oldest":
+          return a.id.localeCompare(b.id);
+        default:
+          return 0;
+      }
     });
 
     return result;
-  }, [activeFilter, searchQuery, sortBy]);
+  }, [activeFilter, sortBy, searchQuery]);
 
-  const toTrack = (song: (typeof dummySongs)[0]) => ({
-    id: song.id,
-    title: song.title,
-    src: song.audioUrl,
-    cover: song.cover,
-    artist: song.artist,
-    durationSeconds: song.durationSeconds,
-  });
+  // Handle Play/Pause for the main featured hero item
+  const handlePlayHero = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!activeHeroSong) return;
 
-  const handlePlayHero = () => {
-    if (activeHeroSong) {
-      controls.toggle(toTrack(activeHeroSong));
+    if (currentTrack?.id === activeHeroSong.id) {
+      controls.toggle();
+      return;
+    }
+
+    // Play full queue starting with selected song
+    const allTracks = dummySongs.map(toTrack);
+    const index = allTracks.findIndex((t) => t.id === activeHeroSong.id);
+    controls.playQueue(allTracks, Math.max(0, index));
+  };
+
+  const handleRailClick = (song: (typeof dummySongs)[0], e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveHeroSong(song);
+
+    if (currentTrack?.id === song.id) {
+      controls.toggle();
+    } else {
+      const allTracks = dummySongs.map(toTrack);
+      const index = allTracks.findIndex((t) => t.id === song.id);
+      controls.playQueue(allTracks, Math.max(0, index));
     }
   };
 
-  const handleRailClick = (song: (typeof dummySongs)[0]) => {
-    setActiveHeroSong(song);
-    controls.playQueue([toTrack(song)], 0);
-  };
+  const handleLibraryClick = (song: (typeof dummySongs)[0], e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-  const handleLibraryClick = (song: (typeof dummySongs)[0]) => {
-    controls.playQueue([toTrack(song)], 0);
+    if (currentTrack?.id === song.id) {
+      controls.toggle();
+    } else {
+      const allTracks = processedSongs.map(toTrack);
+      const index = allTracks.findIndex((t) => t.id === song.id);
+      controls.playQueue(allTracks, Math.max(0, index));
+    }
   };
 
   if (!activeHeroSong) return null;
@@ -315,219 +269,139 @@ function MusicPage() {
 
   return (
     <PageLayout>
-      {/* 1 & 2. FEATURED HERO AND VERTICAL RAIL */}
-      <header className="relative flex min-h-[85vh] items-center overflow-hidden py-24">
-        {/* Cinematic Blurred Background */}
-        <div className="absolute inset-0 z-0">
-          <AnimatePresence mode="popLayout">
+      {/* 1. NETFLIX-STYLE HERO SECTION */}
+      <section className="relative w-full h-[70vh] min-h-[500px] max-h-[800px] flex items-end pb-20 md:pb-32 overflow-hidden">
+        {/* Background Image & Gradient Masks */}
+        <div className="absolute inset-0 w-full h-full">
+          <AnimatePresence mode="wait">
             <motion.img
-              key={activeHeroSong.id + "-bg"}
-              src={activeHeroSong.cover.src}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.15 }}
+              key={activeHeroSong.id}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1 }}
-              className="size-full object-cover blur-[100px] scale-125 mix-blend-screen"
+              transition={{ duration: 0.8 }}
+              src={activeHeroSong.cover.src}
+              alt={activeHeroSong.title}
+              className="w-full h-full object-cover object-top"
             />
           </AnimatePresence>
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent" />
+          {/* Multiple gradients for Netflix-style depth */}
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/40 to-transparent" />
         </div>
 
-        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-16 px-5 lg:flex-row lg:items-center lg:justify-between lg:gap-10 lg:px-8">
-          {/* Left: Hero Info (Artwork + Details) */}
-          <div className="flex flex-col md:flex-row items-center gap-10 lg:gap-14 flex-1">
-            {/* Artwork */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeHeroSong.id + "-art"}
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="w-full max-w-[320px] md:max-w-[380px] lg:max-w-[420px] shrink-0"
+        {/* Hero Content */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-start gap-4">
+          <motion.div
+            key={`info-${activeHeroSong.id}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex flex-col gap-3"
+          >
+            {/* Title Image or Text */}
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-black text-white tracking-tight uppercase leading-none drop-shadow-2xl max-w-3xl">
+              {activeHeroSong.title}
+            </h1>
+
+            {/* Metadata row */}
+            <div className="flex items-center gap-4 text-sm md:text-base font-medium text-white/90">
+              <span className="text-gold font-bold">New Release</span>
+              <span>2024</span>
+              <span className="px-2 py-0.5 border border-white/30 rounded text-xs tracking-wider">
+                {activeHeroSong.genreIds[0]?.toUpperCase()}
+              </span>
+              <span>
+                {Math.floor(activeHeroSong.durationSeconds / 60)}:
+                {String(activeHeroSong.durationSeconds % 60).padStart(2, "0")}
+              </span>
+            </div>
+
+            {/* Synopsis */}
+            <p className="max-w-xl text-lg text-white/80 leading-relaxed mt-2 drop-shadow-md line-clamp-3">
+              Experience the latest sonic journey from NaadByte. A masterful blend of atmospheric
+              textures and driving rhythms designed to transport you to another dimension.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-4 mt-6">
+              <button
+                onClick={handlePlayHero}
+                className="flex items-center gap-3 px-8 py-3.5 bg-white text-black rounded-lg font-bold hover:bg-white/90 transition-colors shadow-lg"
               >
-                <div className="group relative aspect-square w-full overflow-hidden rounded-2xl bg-card shadow-2xl shadow-black/50 ring-1 ring-white/5 transition-transform duration-700 hover:scale-[1.02]">
-                  <img
-                    src={activeHeroSong.cover.src}
-                    alt={activeHeroSong.title}
-                    className="size-full object-cover"
-                  />
-                  {/* Subtle inner shadow overlay */}
-                  <div className="absolute inset-0 shadow-[inset_0_0_50px_rgba(0,0,0,0.5)] pointer-events-none" />
-                </div>
-              </motion.div>
-            </AnimatePresence>
+                {isHeroPlaying ? (
+                  <>
+                    <Pause className="size-6 fill-black" /> Pause
+                  </>
+                ) : (
+                  <>
+                    <Play className="size-6 fill-black" /> Play Now
+                  </>
+                )}
+              </button>
+              {activeHeroSong.slug && (
+                <Link
+                  to={songPath(activeHeroSong.slug)}
+                  className="flex items-center gap-3 px-8 py-3.5 bg-zinc-500/40 backdrop-blur-md text-white border border-white/10 rounded-lg font-bold hover:bg-zinc-500/50 transition-colors"
+                >
+                  <Info className="size-5" />
+                  More Info
+                </Link>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
-            {/* Info */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeHeroSong.id + "-info"}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-                className="flex flex-col flex-1 text-center md:text-left items-center md:items-start"
-              >
-                <span className="eyebrow tracking-[0.2em] text-gold font-semibold text-xs md:text-sm uppercase mb-4">
-                  Featured Release
-                </span>
-                <h1 className="text-balance text-5xl md:text-6xl lg:text-7xl font-display text-white mb-2 leading-tight">
-                  {activeHeroSong.title}
-                </h1>
+      {/* 2. DISCOVER RAIL (Horizontal Scrolling) */}
+      <section className="relative z-20 w-full max-w-7xl mx-auto -mt-16 md:-mt-24 mb-16">
+        <div className="px-6 md:px-12">
+          <h3 className="text-xl font-bold text-white mb-4">Trending Now</h3>
+        </div>
 
-                <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 text-base md:text-lg text-foreground/80 font-medium mb-6">
-                  <span className="text-white">{activeHeroSong.artist}</span>
-                  <span className="text-muted-foreground">•</span>
-                  <span>{activeHeroSong.genre}</span>
-                </div>
-
-                <p className="max-w-xl text-pretty text-base text-muted-foreground leading-relaxed mb-8">
-                  {activeHeroSong.description}
-                </p>
-
-                <div className="flex flex-wrap justify-center md:justify-start items-center gap-6 mb-8">
-                  <button
-                    onClick={handlePlayHero}
-                    className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-gold px-10 text-sm font-semibold text-black transition-transform hover:scale-105 shadow-lg shadow-gold/20"
-                  >
-                    {isHeroPlaying ? (
-                      <>
-                        <Pause className="size-5" fill="currentColor" />
-                        Pause
-                      </>
-                    ) : (
-                      <>
-                        <Play className="size-5" fill="currentColor" />
-                        Listen Now
-                      </>
-                    )}
-                  </button>
-
-                  <div className="flex items-center gap-4">
-                    {activeHeroSong.streamingLinks.map((link) => (
-                      <a
-                        key={link.platform}
-                        href={link.href}
-                        className="text-muted-foreground hover:text-white transition-colors"
-                      >
-                        <PlatformIcon platform={link.platform as PlatformKey} className="size-6" />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Right: Vertical Rail (Netflix Poster Style) */}
-          <div className="w-full lg:w-[140px] shrink-0 flex lg:flex-col gap-4 overflow-x-auto lg:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x lg:snap-y snap-mandatory px-2 py-4 lg:py-10 lg:max-h-[600px] lg:mask-image-[linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)]">
-            {featured.map((song) => {
-              const isActive = activeHeroSong.id === song.id;
-              const isPlaying =
-                currentTrack?.id === song.id && (status === "playing" || status === "loading");
+        <div className="w-full overflow-x-auto pb-6 px-6 md:px-12 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex gap-4 w-max">
+            {dummySongs.map((song) => {
+              const isActive = activeHeroSong?.id === song.id;
 
               return (
                 <button
-                  key={song.id}
-                  onClick={() => handleRailClick(song)}
-                  className={`group relative flex-shrink-0 w-[110px] lg:w-[120px] aspect-[2/3] rounded-xl overflow-hidden transition-all duration-500 snap-center
-                    ${
-                      isActive
-                        ? "ring-2 ring-gold shadow-[0_0_25px_rgba(212,175,55,0.25)] scale-100 z-10"
-                        : "opacity-60 hover:opacity-100 scale-95 hover:scale-100 ring-1 ring-white/10"
-                    }
+                  key={`rail-${song.id}`}
+                  onClick={(e) => handleRailClick(song, e)}
+                  className={`group relative flex-shrink-0 w-[160px] md:w-[200px] aspect-video rounded-md overflow-hidden transition-all duration-500 hover:scale-105 hover:z-30 cursor-pointer
+                    ${isActive ? "ring-2 ring-white scale-105 z-20" : "opacity-70 hover:opacity-100 scale-100 z-10"}
                   `}
                 >
-                  {/* Future Video Container - Ready for standard HTML5 <video> */}
                   <img
                     src={song.cover.src}
                     className="size-full object-cover transition-transform duration-700 group-hover:scale-110"
                     alt={song.title}
                   />
+                  {/* Subtle gradient for text readability if we wanted to overlay text */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                  {/* Dark gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 transition-opacity group-hover:opacity-70" />
-
-                  <div className="absolute inset-0 flex flex-col justify-between p-3 pointer-events-none">
-                    <div className="flex justify-end">
-                      {isActive && (
-                        <div className="flex gap-0.5 items-end h-3 bg-black/40 p-1 rounded-sm backdrop-blur-sm">
-                          {/* Animated Equalizer */}
-                          <motion.div
-                            animate={
-                              isPlaying
-                                ? { height: ["20%", "80%", "40%", "100%", "20%"] }
-                                : { height: "20%" }
-                            }
-                            transition={{ repeat: Infinity, duration: 1 }}
-                            className="w-1 bg-gold rounded-full"
-                          />
-                          <motion.div
-                            animate={
-                              isPlaying
-                                ? { height: ["60%", "20%", "100%", "40%", "60%"] }
-                                : { height: "20%" }
-                            }
-                            transition={{
-                              repeat: Infinity,
-                              duration: 1,
-                              delay: 0.2,
-                            }}
-                            className="w-1 bg-gold rounded-full"
-                          />
-                          <motion.div
-                            animate={
-                              isPlaying
-                                ? { height: ["100%", "40%", "80%", "20%", "100%"] }
-                                : { height: "20%" }
-                            }
-                            transition={{
-                              repeat: Infinity,
-                              duration: 1,
-                              delay: 0.4,
-                            }}
-                            className="w-1 bg-gold rounded-full"
-                          />
-                        </div>
-                      )}
+                  {/* Quick play overlay on hover */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px] bg-black/20">
+                    <div className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center bg-black/40">
+                      <Play className="size-5 text-white ml-1 fill-white" />
                     </div>
-
-                    <div className="flex flex-col items-start gap-1">
-                      <h4 className="text-white text-xs font-bold leading-tight text-left line-clamp-2 drop-shadow-md">
-                        {song.title}
-                      </h4>
-                      <span className="text-white/70 text-[10px] font-medium drop-shadow-md">
-                        {song.durationText}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Hover Play Button */}
-                  <div
-                    className={`absolute inset-0 m-auto flex size-10 items-center justify-center rounded-full bg-gold/90 text-black backdrop-blur-md shadow-xl transition-all duration-300
-                      ${
-                        isActive
-                          ? "opacity-0 scale-75"
-                          : "opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100"
-                      }
-                    `}
-                  >
-                    <Play className="ml-0.5 size-4" fill="currentColor" />
                   </div>
                 </button>
               );
             })}
           </div>
         </div>
-      </header>
+      </section>
 
-      {/* FILTER & LIBRARY SECTION */}
-      <PageSection className="pb-32 pt-8 bg-black/40 border-t border-border">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          {/* Section Header: Search & Sort */}
-          <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      {/* 3. FULL LIBRARY BROWSER */}
+      <PageSection className="relative z-10 bg-zinc-950">
+        <div className="max-w-7xl mx-auto w-full pt-8">
+          {/* Header Row */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
             <div>
+              <p className="text-gold tracking-[0.2em] uppercase text-sm font-semibold mb-2">
+                Complete Collection
+              </p>
               <h2 className="text-3xl md:text-4xl font-display text-white">
                 Browse by Mood & Genre
               </h2>
@@ -628,12 +502,12 @@ function MusicPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
                         transition={{ duration: 0.3 }}
-                        key={song.id}
+                        key={`lib-${song.id}`}
                         className="relative group"
                       >
                         <button
-                          onClick={() => handleLibraryClick(song)}
-                          className={`relative w-[60px] h-[60px] sm:w-[70px] sm:h-[70px] md:w-[80px] md:h-[80px] rounded-lg overflow-hidden border transition-all duration-300
+                          onClick={(e) => handleLibraryClick(song, e)}
+                          className={`relative w-[60px] h-[60px] sm:w-[70px] sm:h-[70px] md:w-[80px] md:h-[80px] rounded-lg overflow-hidden border transition-all duration-300 cursor-pointer
                             ${
                               isPlaying
                                 ? "border-gold shadow-[0_0_20px_rgba(212,175,55,0.4)] scale-105"

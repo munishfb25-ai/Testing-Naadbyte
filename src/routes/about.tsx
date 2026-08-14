@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, Variants } from "framer-motion";
 import { PageLayout, PageSection } from "@/components/layout/PageLayout";
 import { RouteLink } from "@/components/common/RouteLink";
 import { brandAssets, albumArt, genreArt } from "@/data/assets";
@@ -40,7 +40,7 @@ function AboutPage() {
   const yHero = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const opacityHero = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
-  const staggerContainer = {
+  const staggerContainer: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -50,7 +50,7 @@ function AboutPage() {
     },
   };
 
-  const fadeUp = {
+  const fadeUp: Variants = {
     hidden: { opacity: 0, y: 30 },
     show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
   };

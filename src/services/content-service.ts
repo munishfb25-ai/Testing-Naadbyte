@@ -60,7 +60,7 @@ function resolveProvider(): ContentProvider {
     ...base,
     name: `${base.name}+youtube`,
     // YouTube provider is the single source of truth for all video content
-    getVideos: () => youtubeContentProvider.getVideos(),
+    getVideos: (pageToken?: string) => youtubeContentProvider.getVideos(pageToken),
   };
 }
 

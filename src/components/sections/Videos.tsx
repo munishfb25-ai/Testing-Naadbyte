@@ -1,5 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { videosContent } from "@/content/sections";
-import { select } from "@/services";
+import { contentService, select } from "@/services";
+import { getVideosServerFn } from "@/services/server-functions";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { ActionLink } from "@/components/common/ActionLink";
 import { ViewAllLink } from "@/components/common/RouteLink";
@@ -15,6 +17,14 @@ export function Videos({
   viewAllTo?: RoutePath;
   viewAllLabel?: string;
 } = {}) {
+  const { data: videoData } = useQuery({
+    queryKey: ["homepage-videos"],
+    queryFn: () => getVideosServerFn(),
+  });
+
+  const videos = videoData?.videos;
+  const displayVideos = videos ? videos.slice(0, limit) : select.videos(limit);
+
   return (
     <section id="videos" className="relative py-24 md:py-32">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-14 px-5 lg:px-8">
@@ -23,8 +33,9 @@ export function Videos({
           title={videosContent.title}
           subtitle={videosContent.subtitle}
         />
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {select.videos(limit).map((video, i) => (
+          {displayVideos.map((video, i) => (
             <VideoCard key={video.id} video={video} index={i} />
           ))}
         </div>

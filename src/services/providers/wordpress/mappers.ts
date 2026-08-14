@@ -106,6 +106,20 @@ export function mapSong(post: WpPost): Song {
     isFeatured: bool(data["featured"]),
     ...(str(data["album_id"]) ? { albumId: str(data["album_id"]) } : {}),
     ...(audioUrl ? { audioUrl } : {}),
+    ...(str(data["description"]) || str(post.content?.rendered) || str(post.excerpt?.rendered)
+      ? {
+          description: stripHtml(
+            str(data["description"]) || str(post.content?.rendered) || str(post.excerpt?.rendered),
+          ),
+        }
+      : {}),
+    ...(str(data["story"]) ? { story: str(data["story"]) } : {}),
+    ...(str(data["mood"]) ? { mood: str(data["mood"]) } : {}),
+    ...(str(data["suitable_for"]) ? { suitableFor: str(data["suitable_for"]) } : {}),
+    ...(str(data["production_notes"]) ? { productionNotes: str(data["production_notes"]) } : {}),
+    ...(str(data["tempo"]) ? { tempo: str(data["tempo"]) } : {}),
+    ...(num(data["bpm"]) !== undefined ? { bpm: num(data["bpm"]) } : {}),
+    ...(str(data["ai_notes"]) ? { aiNotes: str(data["ai_notes"]) } : {}),
     ...(str(data["lyrics"]) ? { lyrics: str(data["lyrics"]) } : {}),
     ...(featuredOrder !== undefined ? { featuredOrder } : {}),
   };

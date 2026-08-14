@@ -18,6 +18,14 @@ export type Song = BaseEntity & {
   /** Optional preview/stream URL for an in-app player. */
   audioUrl?: string;
   streamingLinks: StreamingLink[];
+  description?: string;
+  story?: string;
+  mood?: string;
+  suitableFor?: string;
+  productionNotes?: string;
+  tempo?: string;
+  bpm?: number;
+  aiNotes?: string;
   lyrics?: string;
   tags?: string[];
   isFeatured?: boolean;

@@ -9,7 +9,7 @@ export type Video = BaseEntity & {
   provider: VideoProvider;
   /** Provider-side id (YouTube video id) or full URL for self-hosted. */
   videoId: string;
-  thumbnail?: string;
+  thumbnail?: string | undefined;
   publishedAt?: ISODate;
   /** References `Song.id` / `Album.id` when the video belongs to a release. */
   songId?: ID;

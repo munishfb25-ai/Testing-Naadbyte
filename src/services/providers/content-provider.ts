@@ -33,7 +33,9 @@ export type ContentProvider = {
   getGenres(): Promise<Genre[]>;
   getGenreBySlug(slug: string): Promise<Genre | undefined>;
 
-  getVideos(): Promise<Video[]>;
+  getVideos(
+    pageToken?: string | undefined,
+  ): Promise<{ videos: Video[]; nextPageToken?: string | undefined }>;
   getSocialPosts(): Promise<SocialPost[]>;
   getPlatforms(): Promise<Platform[]>;
 

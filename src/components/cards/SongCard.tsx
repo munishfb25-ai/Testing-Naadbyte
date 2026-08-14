@@ -11,7 +11,6 @@ import { songToTrack } from "@/services/audio-player";
 
 export function SongCard({ song, index = 0 }: { song: Song; index?: number }) {
   const { currentTrack, status, controls } = useAudioPlayer();
-
   const track = songToTrack(song);
 
   const isPlaying = currentTrack?.id === song.id && (status === "playing" || status === "loading");
@@ -20,6 +19,7 @@ export function SongCard({ song, index = 0 }: { song: Song; index?: number }) {
   const handlePlay = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
     if (!track) return;
 
     if (currentTrack?.id === track.id) {
@@ -53,32 +53,35 @@ export function SongCard({ song, index = 0 }: { song: Song; index?: number }) {
       transition={{ duration: 0.5, delay: index * 0.06, ease: "easeOut" }}
       className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-deep transition-all duration-500 hover:-translate-y-1 hover:border-gold/40"
     >
-      <button
-        onClick={handlePlay}
-        disabled={!hasAudio}
-        className={`relative size-16 shrink-0 overflow-hidden rounded-xl ${hasAudio ? "cursor-pointer" : "cursor-default"}`}
-        aria-label={isPlaying ? `Pause ${song.title}` : `Play ${song.title}`}
-      >
-        <img
-          src={song.cover.src}
-          alt={song.cover.alt}
-          loading="lazy"
-          width={128}
-          height={128}
-          className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
+      <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+        <Link
+          to={songPath(song.slug)}
+          className="absolute inset-0 z-0 block"
+          aria-label={`View details for ${song.title}`}
+        >
+          <img
+            src={song.cover.src}
+            alt={song.cover.alt}
+            loading="lazy"
+            width={128}
+            height={128}
+            className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+        </Link>
         {hasAudio && (
-          <span
-            className={`absolute inset-0 flex items-center justify-center bg-background/60 transition-opacity duration-300 ${isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+          <button
+            onClick={handlePlay}
+            aria-label={isPlaying ? `Pause ${song.title}` : `Play ${song.title}`}
+            className={`absolute inset-0 m-auto flex size-8 items-center justify-center rounded-full bg-black/60 backdrop-blur-sm transition-all duration-300 z-10 hover:bg-black/80 hover:scale-110 cursor-pointer ${isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
           >
             {isPlaying ? (
-              <Pause className="size-5 text-gold" aria-hidden />
+              <Pause className="size-4 text-gold" aria-hidden />
             ) : (
-              <Play className="size-5 text-gold" aria-hidden />
+              <Play className="size-4 text-gold ml-0.5" aria-hidden />
             )}
-          </span>
+          </button>
         )}
-      </button>
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <Link
@@ -96,7 +99,7 @@ export function SongCard({ song, index = 0 }: { song: Song; index?: number }) {
         {song.streamingLinks.slice(0, 3).map((link) => (
           <a
             key={link.platform}
-            href={link.url}
+            href={link.href}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Listen on ${link.platform}`}

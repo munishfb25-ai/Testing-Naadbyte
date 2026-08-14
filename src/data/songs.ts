@@ -108,6 +108,6 @@ export const songs: Song[] = [
     audioUrl: TEST_AUDIO_URL_1,
     streamingLinks: [],
     isFeatured: i === 0, // Make one of them featured
-    status: "published",
+    status: "published" as const,
   })),
 ];

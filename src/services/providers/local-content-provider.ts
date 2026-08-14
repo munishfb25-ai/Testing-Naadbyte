@@ -8,7 +8,7 @@ import { songRequests } from "@/data/song-requests";
 import { songs } from "@/data/songs";
 import { testimonials } from "@/data/testimonials";
 import { videos } from "@/data/videos";
-import type { SongRequest, SongRequestInput } from "@/types";
+import type { SongRequest, SongRequestInput, Video } from "@/types";
 import type { ContentProvider } from "./content-provider";
 
 /**
@@ -42,8 +42,15 @@ export const localContentProvider: ContentProvider = {
     return genres.find((g) => g.slug === slug);
   },
 
-  async getVideos() {
-    return videos;
+  async getVideos(
+    pageToken?: string | undefined,
+  ): Promise<{ videos: Video[]; nextPageToken?: string | undefined; totalResults: number }> {
+    const limit = 12;
+    const page = pageToken ? parseInt(pageToken) : 1;
+    const startIndex = (page - 1) * limit;
+    const pageVideos = videos.slice(startIndex, startIndex + limit);
+    const nextPageToken = startIndex + limit < videos.length ? String(page + 1) : undefined;
+    return { videos: pageVideos, nextPageToken, totalResults: videos.length };
   },
   async getSocialPosts() {
     return socialPosts;

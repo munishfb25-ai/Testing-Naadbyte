@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
 import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { PageLayout, PageSection } from "@/components/layout/PageLayout";
 import { PlatformIcon } from "@/components/common/PlatformIcon";
 import { contentService, select } from "@/services";
+import { getVideosServerFn } from "@/services/server-functions";
 import { videosPage } from "@/content/pages";
 import { pageMeta, withBrand } from "@/lib/seo";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/videos")({
       description: videosPage.description,
     }),
   }),
+  loader: () => getVideosServerFn(),
   component: VideosPage,
 });
 
@@ -64,11 +66,21 @@ function pickHeroVideo(videoList: Video[]): Video | undefined {
 }
 
 function VideosPage() {
-  const { data: videos = select.videos() } = useQuery({
+  const initialVideos = Route.useLoaderData();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
     queryKey: ["videos"],
-    queryFn: () => contentService.getVideos(),
-    initialData: select.videos(),
+    queryFn: ({ pageParam }) => getVideosServerFn({ data: { pageToken: pageParam } }),
+    initialPageParam: undefined as string | undefined,
+    ...(initialVideos
+      ? { initialData: { pages: [initialVideos], pageParams: [undefined as string | undefined] } }
+      : {}),
+    getNextPageParam: (lastPage) => lastPage?.nextPageToken || undefined,
   });
+
+  const videos = useMemo(() => {
+    if (!data) return [];
+    return data.pages.flatMap((page) => page?.videos || []);
+  }, [data]);
 
   const [activeCategory, setActiveCategory] = useState("All");
   const [userSelected, setUserSelected] = useState(false);
@@ -323,9 +335,21 @@ function VideosPage() {
             ))}
           </AnimatePresence>
         </motion.div>
-        {filteredVideos.length === 0 && (
+        {filteredVideos.length === 0 && !isLoading && (
           <div className="py-20 text-center text-muted-foreground">
             No videos found for this category.
+          </div>
+        )}
+
+        {hasNextPage && activeCategory === "All" && (
+          <div className="mt-12 flex justify-center">
+            <button
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-border bg-card px-8 text-sm font-semibold text-foreground transition-all hover:bg-card/80 hover:border-gold/50 hover:text-gold disabled:opacity-50"
+            >
+              {isFetchingNextPage ? "Loading..." : "Load More"}
+            </button>
           </div>
         )}
       </PageSection>

@@ -12,15 +12,15 @@ export const youtubeConfig = {
    */
   get apiKey(): string | undefined {
     // Client-side Vite environment
-    if (typeof import.meta !== "undefined" && import.meta.env?.VITE_YOUTUBE_API_KEY) {
-      return import.meta.env.VITE_YOUTUBE_API_KEY;
+    if (typeof import.meta !== "undefined" && import.meta.env?.["VITE_YOUTUBE_API_KEY"]) {
+      return import.meta.env["VITE_YOUTUBE_API_KEY"];
     }
     // Server-side Node environment
-    if (typeof process !== "undefined" && process.env?.YOUTUBE_API_KEY) {
-      return process.env.YOUTUBE_API_KEY;
+    if (typeof process !== "undefined" && process.env?.["YOUTUBE_API_KEY"]) {
+      return process.env["YOUTUBE_API_KEY"];
     }
-    if (typeof process !== "undefined" && process.env?.VITE_YOUTUBE_API_KEY) {
-      return process.env.VITE_YOUTUBE_API_KEY;
+    if (typeof process !== "undefined" && process.env?.["VITE_YOUTUBE_API_KEY"]) {
+      return process.env["VITE_YOUTUBE_API_KEY"];
     }
     return undefined;
   },
@@ -30,17 +30,17 @@ export const youtubeConfig = {
    * Used to query the channel's uploads playlist and RSS feed.
    */
   get channelId(): string {
-    if (typeof import.meta !== "undefined" && import.meta.env?.VITE_YOUTUBE_CHANNEL_ID) {
-      return import.meta.env.VITE_YOUTUBE_CHANNEL_ID;
+    if (typeof import.meta !== "undefined" && import.meta.env?.["VITE_YOUTUBE_CHANNEL_ID"]) {
+      return import.meta.env["VITE_YOUTUBE_CHANNEL_ID"];
     }
-    if (typeof process !== "undefined" && process.env?.YOUTUBE_CHANNEL_ID) {
-      return process.env.YOUTUBE_CHANNEL_ID;
+    if (typeof process !== "undefined" && process.env?.["YOUTUBE_CHANNEL_ID"]) {
+      return process.env["YOUTUBE_CHANNEL_ID"];
     }
-    if (typeof process !== "undefined" && process.env?.VITE_YOUTUBE_CHANNEL_ID) {
-      return process.env.VITE_YOUTUBE_CHANNEL_ID;
+    if (typeof process !== "undefined" && process.env?.["VITE_YOUTUBE_CHANNEL_ID"]) {
+      return process.env["VITE_YOUTUBE_CHANNEL_ID"];
     }
     // Default NaadByte channel identifier fallback
-    return "UC_naadbyte_official";
+    return "UCU1dqS-KoElMTlTn8xIAKAQ";
   },
 
   /**
@@ -52,7 +52,7 @@ export const youtubeConfig = {
   /**
    * Maximum videos to fetch per request.
    */
-  maxResults: 50,
+  maxResults: 12,
 };
 
 /** Checks if YouTube API key is available. */
