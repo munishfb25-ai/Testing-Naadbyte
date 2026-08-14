@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
 import { PageLayout, PageSection } from "@/components/layout/PageLayout";
 import { pageMeta, withBrand } from "@/lib/seo";
 import { motion } from "framer-motion";
@@ -114,6 +115,21 @@ const dummyUpcoming = [
 ];
 
 function ReleasesPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Handle Hash Navigation for scroll
+  useEffect(() => {
+    const hash = location.hash;
+    if (!hash) return;
+
+    const releaseId = hash.replace("#", "");
+    const el = document.getElementById(releaseId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      // highlight or flash could be added here
+    }
+  }, [location.hash]);
   return (
     <PageLayout>
       {/* 1. HERO SECTION (Spotify / Apple Music Style) */}
@@ -404,6 +420,7 @@ function UpcomingCard({
 }) {
   return (
     <motion.div
+      id={`r${item.id}`}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}

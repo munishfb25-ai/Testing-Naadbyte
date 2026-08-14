@@ -6,6 +6,7 @@ import { navigation, siteConfig } from "@/data/site";
 import { routes } from "@/data/routes";
 import { BrandLogo } from "@/components/common/BrandLogo";
 import { RouteLink } from "@/components/common/RouteLink";
+import { GlobalSearch } from "@/components/common/GlobalSearch";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
@@ -52,8 +53,9 @@ export function Navbar() {
           ))}
         </ul>
 
-        <div className="flex items-center gap-3">
-          <RouteLink to={routes.music} size="sm" className="hidden sm:inline-flex">
+        <div className="flex items-center gap-3 md:gap-4 relative">
+          <GlobalSearch />
+          <RouteLink to={routes.music} size="sm" className="hidden sm:inline-flex shrink-0">
             Listen Now
           </RouteLink>
           <button
@@ -61,7 +63,7 @@ export function Navbar() {
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
-            className="rounded-full border border-border p-2 text-foreground transition-colors hover:text-gold lg:hidden"
+            className="rounded-full border border-border p-2 text-foreground transition-colors hover:text-gold lg:hidden shrink-0"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>

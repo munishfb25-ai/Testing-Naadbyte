@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
 import { PageLayout, PageSection } from "@/components/layout/PageLayout";
 import { PlatformIcon } from "@/components/common/PlatformIcon";
 import { select } from "@/services";
@@ -35,11 +35,33 @@ function VideosPage() {
   const [activeCategory, setActiveCategory] = useState("All");
 
   // Set initial video
-  const [activeVideo, setActiveVideo] = useState<Video>(
+  const [activeVideo, setActiveVideo] = useState<Video | undefined>(
     videos.find((v) => v.isFeatured) || videos[0],
   );
   const [isPlaying, setIsPlaying] = useState(false);
   const { controls: audioControls } = useAudioPlayer();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Handle Hash Navigation for Play/Filter
+  useEffect(() => {
+    const hash = location.hash.replace("#", "");
+    if (!hash) return;
+
+    if (hash.startsWith("play-")) {
+      const videoId = hash.replace("play-", "");
+      const video = videos.find((v) => v.id === videoId);
+      if (video) {
+        setActiveVideo(video);
+        setIsPlaying(true);
+        audioControls.pause();
+        // smooth scroll to top where player is
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      // Clear hash gracefully without reloading
+      navigate({ to: "/videos", replace: true });
+    }
+  }, [location.hash, videos]);
 
   const filteredVideos = useMemo(() => {
     if (activeCategory === "All") return videos;
