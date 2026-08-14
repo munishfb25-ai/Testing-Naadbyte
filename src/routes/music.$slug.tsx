@@ -1,26 +1,46 @@
-import { createFileRoute, notFound, Link } from "@tanstack/react-router";
+import { useState, useMemo, useEffect } from "react";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { PageLayout, PageHeader, PageSection } from "@/components/layout/PageLayout";
 import { SongCard } from "@/components/cards/SongCard";
 import { formatDuration } from "@/lib/utils";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { PlatformIcon } from "@/components/common/PlatformIcon";
 import { RouteLink } from "@/components/common/RouteLink";
-import { select, songToTrack } from "@/services";
+import { contentService, select } from "@/services";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { songToTrack, songsToTracks } from "@/services/audio-player";
 import { routes } from "@/data/routes";
+import { brandAssets } from "@/data/assets";
 import { pageMeta, withBrand } from "@/lib/seo";
 import { Play, Pause, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo, useEffect } from "react";
+import type { Song } from "@/types";
 
 export const Route = createFileRoute("/music/$slug")({
-  loader: ({ params }) => {
-    const song = select.songBySlug(params.slug);
+  loader: async ({ params }) => {
+    const song = await contentService.getSongBySlug(params.slug);
     if (!song) throw notFound();
-    return { song };
+
+    const [allSongs, albums, genres, artists] = await Promise.all([
+      contentService.getSongs().catch(() => []),
+      contentService.getAlbums().catch(() => []),
+      contentService.getGenres().catch(() => []),
+      contentService.getArtists().catch(() => []),
+    ]);
+
+    const album = song.albumId ? albums.find((a) => a.id === song.albumId) : undefined;
+
+    return {
+      song,
+      album,
+      allSongs,
+      albums,
+      genres,
+      artists,
+    };
   },
   head: ({ loaderData }) => {
-    if (!loaderData) {
+    if (!loaderData || !loaderData.song) {
       return {
         meta: pageMeta({
           title: withBrand("Song Not Found"),
@@ -29,14 +49,13 @@ export const Route = createFileRoute("/music/$slug")({
         }),
       };
     }
-    const { song } = loaderData;
-    const album = song.albumId ? select.albumById(song.albumId) : undefined;
+    const { song, album } = loaderData;
     return {
       meta: pageMeta({
         title: withBrand(`${song.title} ${album ? `- ${album.title}` : ""}`),
         description:
           song.description || `Listen to ${song.title} by NaadByte — released ${song.releaseDate}.`,
-        image: song.cover.src,
+        image: song.cover?.src || brandAssets.logo,
       }),
     };
   },
@@ -51,8 +70,7 @@ function getYouTubeId(url: string) {
 }
 
 function SongPage() {
-  const { slug } = Route.useParams();
-  const song = select.songBySlug(slug)!;
+  const { song, album, allSongs, genres, artists } = Route.useLoaderData();
 
   const { currentTrack, status, controls } = useAudioPlayer();
   const isPlaying = currentTrack?.id === song?.id && (status === "playing" || status === "loading");
@@ -61,32 +79,46 @@ function SongPage() {
 
   useEffect(() => {
     setShowVideo(false);
-  }, [slug]);
-
-  const album = song.albumId ? select.albumById(song.albumId) : undefined;
+  }, [song.slug]);
 
   const related = useMemo(() => {
-    let list = album ? select.songsByAlbum(album.id).filter((s) => s.id !== song.id) : [];
+    let list: Song[] = [];
+    if (album) {
+      list = allSongs.filter((s) => s.albumId === album.id && s.id !== song.id);
+    }
     if (list.length < 4) {
-      const genreSongs = song.genreIds
-        .flatMap((gid) => select.songsByGenre(gid))
-        .filter((s) => s.id !== song.id && !list.find((ls) => ls.id === s.id));
+      const genreSongs = allSongs.filter(
+        (s) =>
+          s.id !== song.id &&
+          s.genreIds.some((gid) => song.genreIds.includes(gid)) &&
+          !list.some((ls) => ls.id === s.id),
+      );
       list = [...list, ...genreSongs];
     }
     if (list.length < 4) {
-      const allSongs = select
-        .songs()
-        .filter((s) => s.id !== song.id && !list.find((ls) => ls.id === s.id));
-      list = [...list, ...allSongs];
+      const remainingSongs = allSongs.filter(
+        (s) => s.id !== song.id && !list.some((ls) => ls.id === s.id),
+      );
+      list = [...list, ...remainingSongs];
     }
     return list.slice(0, 6);
-  }, [song, album]);
+  }, [song, album, allSongs]);
 
-  if (!song) return <SongNotFound />;
-  const artistNames = song.artistIds.map((id) => select.artistById(id)?.name ?? id).join(", ");
-  const genreNames = song.genreIds.map((id) => select.genreById(id)?.name ?? id).join(", ");
+  const artistNames =
+    song.artistIds.length > 0
+      ? song.artistIds
+          .map((id) => artists.find((a) => a.id === id)?.name ?? select.artistById(id)?.name ?? id)
+          .join(", ")
+      : "NaadByte";
 
-  const youtubeLink = song.streamingLinks.find((l) => l.platform === "youtube");
+  const genreNames =
+    song.genreIds.length > 0
+      ? song.genreIds
+          .map((id) => genres.find((g) => g.id === id)?.name ?? select.genreById(id)?.name ?? id)
+          .join(", ")
+      : song.language || "Original";
+
+  const youtubeLink = (song.streamingLinks || []).find((l) => l.platform === "youtube");
   const videoId = youtubeLink ? getYouTubeId(youtubeLink.href) : null;
 
   const streamPlatforms = [
@@ -97,13 +129,33 @@ function SongPage() {
     "jiosaavn",
     "gaana",
   ];
-  const displayStreams = song.streamingLinks.filter((l) => streamPlatforms.includes(l.platform));
+  const displayStreams = (song.streamingLinks || []).filter((l) =>
+    streamPlatforms.includes(l.platform),
+  );
+
+  const coverSrc = song.cover?.src || brandAssets.logo;
+  const hasAudio = Boolean(song.audioUrl);
 
   const handlePlaySong = () => {
     const track = songToTrack(song, artistNames);
-    if (track) {
-      if (showVideo) setShowVideo(false);
-      controls.toggle(track);
+    if (!track) return;
+
+    if (showVideo) setShowVideo(false);
+
+    const allTracks = songsToTracks(allSongs);
+    const trackIndex = allTracks.findIndex((t) => t.id === track.id);
+    if (trackIndex >= 0) {
+      if (currentTrack?.id === track.id) {
+        controls.toggle();
+      } else {
+        controls.playQueue(allTracks, trackIndex);
+      }
+    } else {
+      if (currentTrack?.id === track.id) {
+        controls.toggle();
+      } else {
+        controls.playQueue([track], 0);
+      }
     }
   };
 
@@ -119,7 +171,7 @@ function SongPage() {
         {/* Background Blur */}
         <div className="absolute inset-0 z-0">
           <img
-            src={song.cover.src}
+            src={coverSrc}
             alt=""
             className="w-full h-full object-cover opacity-30 scale-110 blur-2xl transform-gpu"
             aria-hidden="true"
@@ -148,32 +200,42 @@ function SongPage() {
                   <span>{album.title}</span>
                 </>
               )}
-              <span className="text-foreground/40">•</span>
-              <span>{song.releaseDate.substring(0, 4)}</span>
-              <span className="text-foreground/40">•</span>
-              <span>{formatDuration(song.durationSeconds)}</span>
+              {song.releaseDate && (
+                <>
+                  <span className="text-foreground/40">•</span>
+                  <span>{song.releaseDate.substring(0, 4)}</span>
+                </>
+              )}
+              {song.durationSeconds > 0 && (
+                <>
+                  <span className="text-foreground/40">•</span>
+                  <span>{formatDuration(song.durationSeconds)}</span>
+                </>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-4 pt-4">
-              <button
-                onClick={handlePlaySong}
-                className="inline-flex h-12 md:h-14 items-center justify-center gap-2 rounded-full bg-white px-8 md:px-10 text-sm md:text-base font-bold text-black transition-transform hover:scale-105 shadow-lg"
-              >
-                {isPlaying ? (
-                  <>
-                    <Pause className="size-5 md:size-6" fill="currentColor" /> Pause
-                  </>
-                ) : (
-                  <>
-                    <Play className="size-5 md:size-6" fill="currentColor" /> Play Song
-                  </>
-                )}
-              </button>
+              {hasAudio && (
+                <button
+                  onClick={handlePlaySong}
+                  className="inline-flex h-12 md:h-14 items-center justify-center gap-2 rounded-full bg-white px-8 md:px-10 text-sm md:text-base font-bold text-black transition-transform hover:scale-105 shadow-lg cursor-pointer"
+                >
+                  {isPlaying ? (
+                    <>
+                      <Pause className="size-5 md:size-6" fill="currentColor" /> Pause
+                    </>
+                  ) : (
+                    <>
+                      <Play className="size-5 md:size-6" fill="currentColor" /> Play Song
+                    </>
+                  )}
+                </button>
+              )}
 
               {videoId && (
                 <button
                   onClick={handleWatchVideo}
-                  className="inline-flex h-12 md:h-14 items-center justify-center gap-2 rounded-full border border-border bg-black/40 backdrop-blur-md px-8 md:px-10 text-sm md:text-base font-bold text-white transition-all hover:bg-white/10 hover:border-white/50"
+                  className="inline-flex h-12 md:h-14 items-center justify-center gap-2 rounded-full border border-border bg-black/40 backdrop-blur-md px-8 md:px-10 text-sm md:text-base font-bold text-white transition-all hover:bg-white/10 hover:border-white/50 cursor-pointer"
                 >
                   <Play className="size-5 md:size-6" /> Watch Video
                 </button>
@@ -184,8 +246,8 @@ function SongPage() {
           <div className="hidden lg:block relative group perspective-1000">
             <div className="relative w-full aspect-square rounded-xl overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform-gpu transition-transform duration-700 group-hover:rotate-y-12 group-hover:rotate-x-12">
               <img
-                src={song.cover.src}
-                alt={song.cover.alt}
+                src={coverSrc}
+                alt={song.cover?.alt || `${song.title} artwork`}
                 className="w-full h-full object-cover"
               />
             </div>
