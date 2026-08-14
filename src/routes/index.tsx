@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
+import { LatestReleases } from "@/components/sections/LatestReleases";
 import { CreateYourSong } from "@/components/sections/CreateYourSong";
 
 import { FeaturedReleases } from "@/components/sections/FeaturedReleases";
@@ -60,6 +61,7 @@ function HomePage() {
       <Navbar />
       <main>
         <Hero />
+        <LatestReleases />
         <CreateYourSong />
         <FeaturedReleases limit={4} viewAllTo={routes.releases} />
         <Genres limit={8} viewAllTo={routes.music} />

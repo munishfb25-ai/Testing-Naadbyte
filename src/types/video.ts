@@ -20,4 +20,8 @@ export type Video = BaseEntity & {
   isFeatured?: boolean;
   /** Editor-controlled homepage ordering; lower renders first. */
   featuredOrder?: number;
+  duration?: string;
+  year?: string;
+  genreStr?: string;
+  category?: string;
 };

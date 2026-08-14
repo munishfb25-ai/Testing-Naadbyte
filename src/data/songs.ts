@@ -1,7 +1,6 @@
 import type { Song } from "@/types";
-import { albumArt } from "./assets";
+import { albumArt, brandAssets } from "./assets";
 
-// TEST AUDIO ONLY — replace with WordPress audio_url before production
 const TEST_AUDIO_URL_1 = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
 const TEST_AUDIO_URL_2 = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3";
 const TEST_AUDIO_URL_3 = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3";
@@ -95,4 +94,20 @@ export const songs: Song[] = [
     isFeatured: true,
     status: "published",
   },
+  // Placeholders
+  ...Array.from({ length: 7 }).map((_, i) => ({
+    id: `placeholder-song-${i + 1}`,
+    slug: `placeholder-song-${i + 1}`,
+    title: `Cosmic Frequency ${i + 1}`,
+    artistIds: ["artist-naadbyte"],
+    genreIds: ["cinematic"],
+    language: "instrumental" as const,
+    durationSeconds: 180 + i * 15,
+    releaseDate: "2026-01-01",
+    cover: { src: brandAssets.heroBackground, alt: `Cosmic Frequency ${i + 1}` },
+    audioUrl: TEST_AUDIO_URL_1,
+    streamingLinks: [],
+    isFeatured: i === 0, // Make one of them featured
+    status: "published",
+  })),
 ];
