@@ -3,7 +3,6 @@ import { PageLayout, PageSection } from "@/components/layout/PageLayout";
 import { SongCard } from "@/components/cards/SongCard";
 import { GenreCard } from "@/components/cards/GenreCard";
 import { SectionHeading } from "@/components/common/SectionHeading";
-import { select } from "@/services";
 import { musicPage } from "@/content/pages";
 import { pageMeta, withBrand } from "@/lib/seo";
 import { motion } from "framer-motion";
@@ -18,12 +17,19 @@ export const Route = createFileRoute("/music/")({
       description: musicPage.description,
     }),
   }),
+  loader: async () => {
+    const { contentService } = await import("@/services");
+    const [songs, genres] = await Promise.all([
+      contentService.getSongs(),
+      contentService.getGenres(),
+    ]);
+    return { songs, genres };
+  },
   component: MusicPage,
 });
 
 function MusicPage() {
-  const songs = select.songs();
-  const genres = select.genres();
+  const { songs, genres } = Route.useLoaderData();
   const featuredSong = songs.find((s) => s.isFeatured) || songs[0];
 
   const { currentTrack, status, controls } = useAudioPlayer();

@@ -39,7 +39,7 @@ export type WpPost = {
 const fields = (post: WpPost): Record<string, unknown> => ({ ...post.meta, ...post.acf });
 
 const str = (value: unknown, fallback = ""): string =>
-  typeof value === "string" ? value : typeof value === "number" ? String(value) : fallback;
+  typeof value === "string" && value.trim() !== "" ? value : typeof value === "number" ? String(value) : fallback;
 
 const num = (value: unknown): number | undefined => {
   const parsed = Number(value);
