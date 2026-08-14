@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { PageLayout, PageSection } from "@/components/layout/PageLayout";
 import { PlatformIcon } from "@/components/common/PlatformIcon";
-import { select } from "@/services";
+import { contentService, select } from "@/services";
 import { videosPage } from "@/content/pages";
 import { pageMeta, withBrand } from "@/lib/seo";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,20 +29,66 @@ const CATEGORIES = [
   "Behind The Scenes",
   "Lyrics",
   "Trailers",
+  "Shorts",
 ];
 
-function VideosPage() {
-  const videos = select.videos();
-  const [activeCategory, setActiveCategory] = useState("All");
+function pickHeroVideo(videoList: Video[]): Video | undefined {
+  if (!videoList || videoList.length === 0) return undefined;
 
-  // Set initial video
-  const [activeVideo, setActiveVideo] = useState<Video | undefined>(
-    videos.find((v) => v.isFeatured) || videos[0],
-  );
+  const featured = videoList.filter((v) => v.isFeatured);
+  if (featured.length > 0) {
+    const sortedFeatured = [...featured].sort((a, b) => {
+      const orderA = a.featuredOrder ?? a.order ?? 9999;
+      const orderB = b.featuredOrder ?? b.order ?? 9999;
+      return orderA - orderB;
+    });
+    return sortedFeatured[0];
+  }
+
+  // If none are featured, use the newest published video
+  const sortedByNewest = [...videoList].sort((a, b) => {
+    const timeA = a.publishedAt
+      ? new Date(a.publishedAt).getTime()
+      : a.year
+        ? new Date(`${a.year}-01-01`).getTime()
+        : 0;
+    const timeB = b.publishedAt
+      ? new Date(b.publishedAt).getTime()
+      : b.year
+        ? new Date(`${b.year}-01-01`).getTime()
+        : 0;
+    return timeB - timeA;
+  });
+
+  return sortedByNewest[0] || videoList[0];
+}
+
+function VideosPage() {
+  const { data: videos = select.videos() } = useQuery({
+    queryKey: ["videos"],
+    queryFn: () => contentService.getVideos(),
+    initialData: select.videos(),
+  });
+
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [userSelected, setUserSelected] = useState(false);
+
+  // Set initial video using the hero selection logic
+  const [activeVideo, setActiveVideo] = useState<Video | undefined>(() => pickHeroVideo(videos));
   const [isPlaying, setIsPlaying] = useState(false);
   const { controls: audioControls } = useAudioPlayer();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Sync activeVideo when videos change (e.g. from async WordPress fetch) if user hasn't manually picked one
+  useEffect(() => {
+    if (!userSelected && videos.length > 0) {
+      setActiveVideo((prev) => {
+        if (!prev) return pickHeroVideo(videos);
+        return videos.find((v) => v.id === prev.id) || pickHeroVideo(videos);
+      });
+    }
+  }, [videos, userSelected]);
 
   // Handle Hash Navigation for Play/Filter
   useEffect(() => {
@@ -50,8 +97,11 @@ function VideosPage() {
 
     if (hash.startsWith("play-")) {
       const videoId = hash.replace("play-", "");
-      const video = videos.find((v) => v.id === videoId);
+      const video = videos.find(
+        (v) => v.id === videoId || v.videoId === videoId || v.slug === videoId,
+      );
       if (video) {
+        setUserSelected(true);
         setActiveVideo(video);
         setIsPlaying(true);
         audioControls.pause();
@@ -61,7 +111,7 @@ function VideosPage() {
       // Clear hash gracefully without reloading
       navigate({ to: "/videos", replace: true });
     }
-  }, [location.hash, videos]);
+  }, [location.hash, videos, audioControls, navigate]);
 
   const filteredVideos = useMemo(() => {
     if (activeCategory === "All") return videos;
@@ -74,6 +124,7 @@ function VideosPage() {
   };
 
   const handleVideoSelect = (video: Video) => {
+    setUserSelected(true);
     setActiveVideo(video);
     setIsPlaying(true);
     audioControls.pause();
@@ -241,7 +292,6 @@ function VideosPage() {
                       alt={video.title}
                       className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-
                     {/* Badges */}
                     <div className="absolute top-3 left-3 flex items-center gap-2">
                       {video.genreStr && (
@@ -250,13 +300,11 @@ function VideosPage() {
                         </span>
                       )}
                     </div>
-
                     {video.duration && (
                       <div className="absolute bottom-3 right-3 px-2 py-1 rounded bg-black/80 text-white text-xs font-medium backdrop-blur-md">
                         {video.duration}
                       </div>
                     )}
-
                     {/* Hover Overlay */}
                     <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex items-center justify-center">
                       <div className="flex size-12 items-center justify-center rounded-full bg-gold text-black transform scale-75 opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
@@ -264,7 +312,6 @@ function VideosPage() {
                       </div>
                     </div>
                   </div>
-
                   <div className="flex flex-col gap-1 px-1">
                     <h3 className="font-display text-lg leading-tight transition-colors group-hover:text-gold line-clamp-1">
                       {video.title}
@@ -276,7 +323,6 @@ function VideosPage() {
             ))}
           </AnimatePresence>
         </motion.div>
-
         {filteredVideos.length === 0 && (
           <div className="py-20 text-center text-muted-foreground">
             No videos found for this category.

@@ -167,6 +167,11 @@ export function mapVideo(post: WpPost): Video {
   const order = num(data["order"]);
   const featuredOrder = num(data["featured_order"]);
   const thumbnail = mapImage(post, "", "thumbnail").src;
+  const duration = str(data["duration"]);
+  const year = str(data["year"], (post.date ?? "").slice(0, 4));
+  const genreStr = str(data["genre_str"] ?? data["genre"]);
+  const category = str(data["category"] ?? data["video_category"]);
+
   return {
     id: str(data["external_id"], `wp-video-${post.id}`),
     slug: post.slug,
@@ -181,6 +186,10 @@ export function mapVideo(post: WpPost): Video {
     ...(thumbnail ? { thumbnail } : {}),
     ...(order !== undefined ? { order } : {}),
     ...(featuredOrder !== undefined ? { featuredOrder } : {}),
+    ...(duration ? { duration } : {}),
+    ...(year ? { year } : {}),
+    ...(genreStr ? { genreStr } : {}),
+    ...(category ? { category } : {}),
   };
 }
 

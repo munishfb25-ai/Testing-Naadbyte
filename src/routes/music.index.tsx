@@ -243,34 +243,7 @@ function MusicPage() {
       setActiveFilter(filter);
       navigate({ to: "/music", replace: true });
     }
-  }, [location.hash]);
-
-  if (!activeHeroSong) return null;
-
-  const isHeroPlaying =
-    currentTrack?.id === activeHeroSong.id && (status === "playing" || status === "loading");
-
-  const toTrack = (song: (typeof dummySongs)[0]) => ({
-    id: song.id,
-    title: song.title,
-    src: song.audioUrl,
-    cover: song.cover,
-    artist: song.artist,
-    durationSeconds: song.durationSeconds,
-  });
-
-  const handlePlayHero = () => {
-    controls.toggle(toTrack(activeHeroSong));
-  };
-
-  const handleRailClick = (song: (typeof dummySongs)[0]) => {
-    setActiveHeroSong(song);
-    controls.playQueue([toTrack(song)], 0);
-  };
-
-  const handleLibraryClick = (song: (typeof dummySongs)[0]) => {
-    controls.playQueue([toTrack(song)], 0);
-  };
+  }, [location.hash, controls, navigate]);
 
   // Filter & Sort Logic
   const processedSongs = useMemo(() => {
@@ -310,6 +283,35 @@ function MusicPage() {
 
     return result;
   }, [activeFilter, searchQuery, sortBy]);
+
+  const toTrack = (song: (typeof dummySongs)[0]) => ({
+    id: song.id,
+    title: song.title,
+    src: song.audioUrl,
+    cover: song.cover,
+    artist: song.artist,
+    durationSeconds: song.durationSeconds,
+  });
+
+  const handlePlayHero = () => {
+    if (activeHeroSong) {
+      controls.toggle(toTrack(activeHeroSong));
+    }
+  };
+
+  const handleRailClick = (song: (typeof dummySongs)[0]) => {
+    setActiveHeroSong(song);
+    controls.playQueue([toTrack(song)], 0);
+  };
+
+  const handleLibraryClick = (song: (typeof dummySongs)[0]) => {
+    controls.playQueue([toTrack(song)], 0);
+  };
+
+  if (!activeHeroSong) return null;
+
+  const isHeroPlaying =
+    currentTrack?.id === activeHeroSong.id && (status === "playing" || status === "loading");
 
   return (
     <PageLayout>

@@ -19,7 +19,7 @@ export const siteConfig: SiteConfig = {
 
 export const navigation: NavItem[] = [
   { label: "Home", href: routes.home },
-  { label: "Create Your Song", href: routes.createYourSong },
+  { label: "Custom Song", href: routes.createYourSong },
   { label: "Music", href: routes.music },
   { label: "Videos", href: routes.videos },
 

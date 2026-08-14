@@ -36,6 +36,7 @@ import { withFallback } from "./providers/fallback-content-provider";
 import { localContentProvider } from "./providers/local-content-provider";
 import { contentProviderMode, isWordPressConfigured } from "./providers/wordpress/config";
 import { wordpressContentProvider } from "./providers/wordpress/wordpress-content-provider";
+import { youtubeContentProvider } from "./providers/youtube";
 
 /**
  * Active provider, chosen by environment configuration:
@@ -44,15 +45,23 @@ import { wordpressContentProvider } from "./providers/wordpress/wordpress-conten
  *   VITE_CONTENT_PROVIDER=wordpress  -> WordPress (still falls back locally)
  *   VITE_CONTENT_PROVIDER=auto       -> WordPress when VITE_WORDPRESS_API_URL is set
  *
- * WordPress is always wrapped in a local fallback so the site keeps rendering
- * if the CMS is unreachable.
+ * NOTE: YouTube is the dedicated single source of truth for all videos.
+ * WordPress / Local providers handle audio, albums, genres, artists, and editorial content.
  */
 function resolveProvider(): ContentProvider {
   const useWordPress =
     contentProviderMode === "wordpress" ||
     (contentProviderMode === "auto" && isWordPressConfigured());
-  if (!useWordPress) return localContentProvider;
-  return withFallback(wordpressContentProvider, localContentProvider);
+  const base = !useWordPress
+    ? localContentProvider
+    : withFallback(wordpressContentProvider, localContentProvider);
+
+  return {
+    ...base,
+    name: `${base.name}+youtube`,
+    // YouTube provider is the single source of truth for all video content
+    getVideos: () => youtubeContentProvider.getVideos(),
+  };
 }
 
 export const contentService: ContentProvider = resolveProvider();

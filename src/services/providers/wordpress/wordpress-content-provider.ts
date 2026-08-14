@@ -59,7 +59,8 @@ export const wordpressContentProvider: ContentProvider = {
   },
 
   async getVideos() {
-    return (await wpFetch<WpPost[]>(wordpressEndpoints.video)).map(mapVideo);
+    const { youtubeContentProvider } = await import("../youtube/youtube-content-provider");
+    return youtubeContentProvider.getVideos();
   },
   async getSocialPosts() {
     return (await wpFetch<WpPost[]>(wordpressEndpoints.socialPost)).map(mapSocialPost);
