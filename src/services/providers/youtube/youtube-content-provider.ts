@@ -156,7 +156,11 @@ export const youtubeContentProvider = {
     const channelId = youtubeConfig.channelId;
     const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
 
-    const res = await fetch(rssUrl);
+    const res = await fetch(rssUrl, {
+      headers: {
+        Accept: "application/atom+xml, application/xml, text/xml",
+      },
+    });
     if (!res.ok) {
       throw new Error(`YouTube RSS request failed with status ${res.status}`);
     }
@@ -168,51 +172,7 @@ export const youtubeContentProvider = {
       return [];
     }
 
-    const longFormEntries: YouTubeRssEntry[] = [];
-
-    // Concurrently filter out Shorts using YouTube's redirect behavior.
-    // - Shorts URL (/shorts/ID) returns 200 OK if it's a short (length < 60s).
-    // - Shorts URL (/shorts/ID) returns 303 Redirect to /watch?v= if it's a long-form standard video.
-    await Promise.all(
-      parsedEntries.map(async (entry) => {
-        try {
-          if (entry.isShortUrl) {
-            // Exclude items already marked as shorts by RSS feed link URL
-            return;
-          }
-
-          const headRes = await fetch(`https://www.youtube.com/shorts/${entry.videoId}`, {
-            method: "HEAD",
-            redirect: "manual",
-          });
-
-          // 303 Redirect confirms it is a long-form video (not a short).
-          if (headRes.status === 303) {
-            longFormEntries.push(entry);
-          }
-        } catch (e) {
-          // On network error during verification, default to keeping it
-          // as long as it wasn't flagged as a short in the RSS.
-          longFormEntries.push(entry);
-        }
-      }),
-    );
-
-    if (longFormEntries.length === 0) {
-      return [];
-    }
-
-    // Restore chronological order (Promise.all resolves out of order)
-    const originalOrderIds = parsedEntries.map((e) => e.videoId);
-    longFormEntries.sort(
-      (a, b) => originalOrderIds.indexOf(a.videoId) - originalOrderIds.indexOf(b.videoId),
-    );
-
-    console.log(
-      `[YouTube RSS] Filtered videos: ${parsedEntries.length} total -> ${longFormEntries.length} long-form only.`,
-    );
-
-    return longFormEntries.map((entry, index) => mapYouTubeRssEntry(entry, index));
+    return parsedEntries.map((entry, index) => mapYouTubeRssEntry(entry, index));
   },
 
   /**
@@ -226,27 +186,53 @@ export const youtubeContentProvider = {
 
     const cached = pageCache.get(cacheKey);
     if (cached && now - cached.timestamp < youtubeConfig.cacheTtlMs) {
-      return { videos: cached.videos, nextPageToken: cached.nextPageToken, totalResults: 0 };
+      return {
+        videos: cached.videos,
+        nextPageToken: cached.nextPageToken,
+        totalResults: cached.videos.length,
+      };
     }
 
-    try {
-      if (isYouTubeApiConfigured()) {
+    // 1. Try YouTube Data API v3 if API key is provided
+    if (isYouTubeApiConfigured()) {
+      try {
         const result = await this.fetchFromApi(pageToken);
+        if (result.videos.length > 0) {
+          pageCache.set(cacheKey, {
+            videos: result.videos,
+            nextPageToken: result.nextPageToken,
+            timestamp: now,
+          });
+          return result;
+        }
+      } catch (err) {
+        console.warn("[youtube-provider] YouTube Data API failed, falling back to RSS feed:", err);
+      }
+    }
+
+    // 2. Try YouTube Public Channel RSS Feed (zero-auth, live channel uploads)
+    try {
+      const rssVideos = await this.fetchFromRss();
+      if (rssVideos.length > 0) {
         pageCache.set(cacheKey, {
-          videos: result.videos,
-          nextPageToken: result.nextPageToken,
+          videos: rssVideos,
+          nextPageToken: undefined,
           timestamp: now,
         });
-        return result;
+        return {
+          videos: rssVideos,
+          nextPageToken: undefined,
+          totalResults: rssVideos.length,
+        };
       }
     } catch (err) {
-      console.error(
-        "API_FETCH_ERROR:",
-        "[youtube-provider] YouTube API fetch failed, falling back to local catalogue:",
+      console.warn(
+        "[youtube-provider] YouTube RSS fetch failed, falling back to local catalogue:",
         err,
       );
     }
 
+    // 3. Local Catalogue safety net (offline fallback)
     const localData = await localContentProvider.getVideos(pageToken);
     return {
       videos: localData.videos,

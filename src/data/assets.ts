@@ -4,7 +4,7 @@
  */
 
 const logoMarkUrl = "/assets/logo-mark.png";
-const heroUrl = "/assets/hero-image.png";
+const heroUrl = "/assets/hero-page.png";
 
 import albumShiva from "@/assets/album-shiva-within.jpg";
 import albumEchoes from "@/assets/album-echoes.jpg";

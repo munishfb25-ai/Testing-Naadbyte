@@ -39,74 +39,73 @@ export type CreateYourSongSectionContent = SectionContent & {
 };
 
 export const createYourSongSection: CreateYourSongSectionContent = {
-  eyebrow: "The Flagship Experience",
+  eyebrow: "Bespoke Music",
   title: "Turn Your Story Into an Original Song",
   subtitle:
-    "Not a playlist. Not a template. A completely original composition written around your memory, your people and your moment.",
+    "Tell us your moment. Our composers write, record, and master an original studio track made only for you.",
   intro:
-    "We make original music — and we make it for you. Tell us the story: the wedding morning, the prayer you grew up with, the person you miss, the brand you built from nothing. Our composers, lyricists and producers turn that feeling into a studio-mastered track that exists nowhere else in the world, in Hindi, English or Punjabi.",
+    "Original music crafted around your people, your memory, and your moment — in Hindi, English, or Punjabi.",
   occasions: [
     "Weddings",
     "Birthdays",
     "Anniversaries",
-    "Family Portraits in Sound",
     "Memorials & Tributes",
     "Spiritual Journeys",
-    "Life Stories",
-    "Brands & Films",
+    "Romance & Milestones",
+    "Films & Brands",
   ],
   steps: [
     {
       id: "story",
       title: "Share Your Story",
-      body: "A guided journey — the occasion, the emotion, the names, the language. Every detail becomes a lyric.",
+      body: "Describe your memories, emotions, and milestone details in a simple guided flow.",
     },
     {
       id: "compose",
-      title: "We Compose",
-      body: "Our writers and producers shape melody, arrangement and vocals around the feeling you described.",
+      title: "We Compose & Record",
+      body: "Our writers and live vocalists shape original melody and lyrics around your feeling.",
     },
     {
       id: "review",
-      title: "You Review",
-      body: "Hear the first cut privately. Refine the words, the tempo, the voice — until it sounds like your memory.",
+      title: "You Review & Refine",
+      body: "Listen to the private first cut and refine words or tempo until it feels perfect.",
     },
     {
       id: "alive",
-      title: "Your Song Comes Alive",
-      body: "Mixed and mastered, delivered in studio quality, and released to the world if you want it there.",
+      title: "Delivered in Studio Quality",
+      body: "Receive your label-mastered track, ready to play at your event, gift, or stream.",
     },
   ],
   benefits: [
     {
       id: "original",
-      title: "Written Only For You",
-      body: "Original lyrics, original melody, original arrangement. Nothing recycled, nothing templated.",
+      title: "Original Composition",
+      body: "Unique melodies and bespoke lyrics crafted specifically for your story, never templated or recycled.",
     },
     {
       id: "voices",
-      title: "Real Voices, Real Musicians",
-      body: "Sung and played by our artists across Hindi, English and Punjabi — devotional to cinematic to electronic.",
+      title: "Real Musicians",
+      body: "Performed by live studio vocalists and instrumentalists in Hindi, English, and Punjabi.",
     },
     {
       id: "studio",
-      title: "Studio-Grade Master",
-      body: "Mixed and mastered to label standard, delivered in high resolution and ready for any platform.",
+      title: "Studio-Grade Production",
+      body: "Mixed and mastered to premier label standards in pristine high-fidelity audio.",
     },
     {
       id: "yours",
-      title: "Yours to Keep",
-      body: "Play it at the ceremony, gift it, or release it to the world with our distribution behind it.",
+      title: "Yours Forever",
+      body: "Complete personal ownership to cherish, gift privately, or release worldwide.",
     },
   ],
   experience: {
     quote:
-      "They didn't send us a song. They sent us the morning we got married — the names, the nervousness, the light in the room. Everyone cried before the first chorus.",
-    attribution: "A NaadByte commission · Wedding, Amritsar",
+      "They didn't just give us a song. They captured the morning we got married—the light, the nervousness, the sacred tears. Everyone cried before the first chorus.",
+    attribution: "A bespoke wedding commission · Amritsar",
   },
   cta: { label: "Begin Your Song", href: routes.createYourSong },
-  secondaryCta: { label: "See How It Works", href: routes.createYourSong },
-  note: "Commissioned like a piece of art · Limited slots each month",
+  secondaryCta: { label: "See How It Works", href: "#how-it-works" },
+  note: "Commissioned like fine art · Limited studio slots available each month",
 };
 
 export const releasesContent: SectionContent = {

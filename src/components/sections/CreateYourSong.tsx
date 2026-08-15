@@ -4,11 +4,11 @@ import {
   Feather,
   Gem,
   Headphones,
-  Heart,
   Mic2,
   Music4,
   PenLine,
   Quote,
+  Sparkles,
   Waves,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -26,7 +26,7 @@ const stepIcons: Record<string, LucideIcon> = {
 };
 
 const benefitIcons: Record<string, LucideIcon> = {
-  original: Heart,
+  original: Sparkles,
   voices: Mic2,
   studio: Waves,
   yours: Gem,

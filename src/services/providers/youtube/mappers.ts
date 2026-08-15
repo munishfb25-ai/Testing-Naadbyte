@@ -228,9 +228,9 @@ export function mapYouTubeRssEntry(entry: YouTubeRssEntry, index: number): Video
   const description = entry.description;
   const publishedAt = entry.publishedAt;
   const year = publishedAt ? publishedAt.slice(0, 4) : undefined;
-  const thumbnail = entry.thumbnailUrl || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  const thumbnail = entry.thumbnailUrl || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
-  const category = inferVideoCategory(title, description);
+  const category = entry.isShortUrl ? "Shorts" : inferVideoCategory(title, description);
   const genreStr = inferVideoGenre(title, description);
   const slug = slugify(title) || `video-${videoId}`;
 
