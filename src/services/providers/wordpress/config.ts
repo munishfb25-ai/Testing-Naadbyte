@@ -26,8 +26,9 @@ export const wordpressConfig: WordPressConfig = {
   perPage: Number(env["VITE_WORDPRESS_PER_PAGE"] ?? 100),
 };
 
-/** True when a WordPress base URL has been configured. */
-export const isWordPressConfigured = () => wordpressConfig.baseUrl.length > 0;
+/** True when a valid WordPress base URL has been configured. */
+export const isWordPressConfigured = () =>
+  Boolean(wordpressConfig.baseUrl && /^https?:\/\//i.test(wordpressConfig.baseUrl));
 
 /**
  * Which provider the site should use.
@@ -50,6 +51,9 @@ export const wordpressEndpoints = {
 } as const;
 
 export async function wpFetch<T>(path: string, params: Record<string, string | number> = {}) {
+  if (!isWordPressConfigured()) {
+    throw new Error("WordPress API base URL is not configured or invalid.");
+  }
   const url = new URL(`${wordpressConfig.baseUrl}/${wordpressConfig.namespace}/${path}`);
   url.searchParams.set("per_page", String(wordpressConfig.perPage));
   url.searchParams.set("_embed", "1");

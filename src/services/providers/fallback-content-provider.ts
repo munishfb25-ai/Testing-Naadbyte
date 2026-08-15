@@ -22,9 +22,9 @@ export function withFallback(primary: ContentProvider, fallback: ContentProvider
         }
         return result;
       } catch (error) {
-        console.error(
-          `[content] ${primary.name}.${String(key)} failed, using ${fallback.name}`,
-          error,
+        console.warn(
+          `[content] ${primary.name}.${String(key)} failed, using ${fallback.name}:`,
+          error instanceof Error ? error.message : error,
         );
         return await (fallbackFn as (...a: unknown[]) => Promise<unknown>).apply(fallback, args);
       }
